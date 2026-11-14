@@ -1,0 +1,5 @@
+PASS: key ownership, repeat, modifier transition, pause; INPUT x64 layout.
+Initial desktops=2, index=0
+PASS: at least two desktops (created only if initially one).
+PASS: real shell switching 1->2->1 and external-state resync, confirmed by registry GUIDs.
+PASS: original desktop restored.

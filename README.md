@@ -15,7 +15,7 @@ SHA-256：`FD61B3C0A3A324DBFAE2064F64238161188619B595A1AA70231BCDCBECBCB6A2`
 1. 双击运行下载的 EXE。启用后会显示主窗口。
 2. 按 Tab 切换桌面；如果只有一个桌面，程序会尝试自动创建第二个。
 3. 修改按键：点击“更改”，直接按下新键，再点击“保存”。例如可以选 F8 或 Caps Lock。仅支持单键，Ctrl、Alt、Shift 和 Win 不能单独作为触发键。
-4. 在“本工具移至”中选择现有桌面，程序尝试将窗口移到该桌面并切换过去。
+4. 需要收起工具窗口时，可在“本工具移至”中选择不需要展示工具的虚拟桌面。程序会尝试将工具窗口移到所选桌面，并同时切换过去；切回其他桌面后，工具窗口便不会显示。
 5. “工具状态”可关闭或开启切换功能。关闭窗口或再次双击 EXE 可退出程序。
 
 启用期间，触发键的单独按下会被占用；默认 Tab 不再用于普通焦点切换和缩进。带修饰键的组合如 Alt+Tab 会放行。关闭程序不会删除虚拟桌面。
@@ -49,6 +49,7 @@ powershell -NoProfile -File .\build.ps1
 编译后生成 `DesktopToggle.exe`。源码位于 `src/`。项目使用 MIT 许可证，参见 [LICENSE](LICENSE)。实现方案与早期脚本说明见 [NOTICE.md](NOTICE.md)。
 
 参考：[键盘钩子](https://learn.microsoft.com/en-us/windows/win32/winmsg/lowlevelkeyboardproc)、[SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput)。
+
 
 
 

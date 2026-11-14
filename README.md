@@ -1,10 +1,10 @@
-# DesktopToggle
+# DesktopToggle · 一键切换虚拟桌面
 
-Windows 11 虚拟桌面切换工具。双击开启，按一个键在桌面 1 和桌面 2 之间切换；再次双击关闭。默认按键为 Tab，可在窗口中改成其他单键。
+轻量的虚拟桌面切换工具。按一个键，在学习、工作和个人桌面之间快速切换。默认按键为 Tab，也可以改成其他单键。
 
 ## 下载
 
-Windows 11 x64 用户可直接下载 [下载最新版 DesktopToggle.exe](https://github.com/BroadenZeng/desktop-toggle/raw/refs/heads/main/download/DesktopToggle.exe)。也可查看 [发布页面](https://github.com/BroadenZeng/desktop-toggle/releases)。
+直接下载 [下载最新版 DesktopToggle.exe](https://github.com/BroadenZeng/desktop-toggle/raw/refs/heads/main/download/DesktopToggle.exe)。也可查看 [发布页面](https://github.com/BroadenZeng/desktop-toggle/releases)。
 
 下载后双击运行，再次双击可退出。无需安装或管理员权限。请勿同时运行旧版。
 
@@ -20,9 +20,9 @@ SHA-256：`EDB3C125430307B90E20DB2575C50784E181AE67F7FEC72185AEA2ED63173399`
 
 启用期间，触发键的单独按下会被占用；默认 Tab 不再用于普通焦点切换和缩进。带修饰键的组合如 Alt+Tab 会放行。关闭程序不会删除虚拟桌面。
 
-## 系统要求与注意事项
+## 注意事项
 
-- Windows 11 x64，使用系统自带 .NET Framework 4.x，无需安装其他运行时。
+- 使用系统自带 .NET Framework 4.x，无需安装其他运行时。
 - 程序未签名，下载后 Windows SmartScreen 可能显示提示。请从可信来源下载。
 - 程序读取 Explorer 的虚拟桌面状态，并使用 Windows 桌面快捷键切换。由于依赖的状态信息并非公开接口，Windows 更新可能影响兼容性；无法读取状态或确认切换时会停止接管按键。
 - 默认按当前桌面顺序在前两个桌面之间切换；从其他桌面触发时返回第一个桌面。
@@ -30,7 +30,7 @@ SHA-256：`EDB3C125430307B90E20DB2575C50784E181AE67F7FEC72185AEA2ED63173399`
 - 配置保存在 `%LOCALAPPDATA%\DesktopToggle\hotkey.txt`，最后一次错误保存在同目录的 `last-error.txt`。程序不记录按键内容，也不设置开机启动。
 - 卸载时先关闭程序，再删除 EXE；如需清除设置，可删除上述配置目录。
 
-## 验证情况
+## 系统兼容性与验证
 
 在 Windows 11 21H2（22000.2538）上，早期版本已验证从一个桌面创建第二个桌面、桌面间切换以及启动和关闭。后续调整了界面和按键录入，最新版的最小化、完整键盘交互及其他 Windows 版本尚待验证。详见 [测试记录](TEST-REPORT.md)。
 
@@ -49,6 +49,8 @@ powershell -NoProfile -File .\build.ps1
 编译后生成 `DesktopToggle.exe`。源码位于 `src/`。项目使用 MIT 许可证，参见 [LICENSE](LICENSE)。实现方案与早期脚本说明见 [NOTICE.md](NOTICE.md)。
 
 参考：[键盘钩子](https://learn.microsoft.com/en-us/windows/win32/winmsg/lowlevelkeyboardproc)、[SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput)。
+
+
 
 
 

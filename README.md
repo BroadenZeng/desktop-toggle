@@ -4,7 +4,7 @@ Windows 11 虚拟桌面切换工具。双击开启，按一个键在桌面 1 和
 
 ## 使用
 
-1. 从 Releases 下载 `DesktopToggle.exe`，双击运行。启用后会显示主窗口。
+1. [下载 DesktopToggle.exe](https://github.com/BroadenZeng/desktop-toggle/raw/refs/heads/main/download/DesktopToggle.exe)，双击运行。启用后会显示主窗口。
 2. 按 Tab 切换桌面；如果只有一个桌面，程序会尝试自动创建第二个。
 3. 修改按键：点击“更改”，直接按下新键，再点击“保存”。例如可以选 F8 或 Caps Lock。仅支持单键，Ctrl、Alt、Shift 和 Win 不能单独作为触发键。
 4. 在“本工具移至”中选择现有桌面，程序尝试将窗口移到该桌面并切换过去。
@@ -37,4 +37,6 @@ powershell -NoProfile -File .\build.ps1
 编译后生成 `DesktopToggle.exe`。源码位于 `src/`。项目使用 MIT 许可证，参见 [LICENSE](LICENSE)。实现方案与早期脚本说明见 [NOTICE.md](NOTICE.md)。
 
 参考：[键盘钩子](https://learn.microsoft.com/en-us/windows/win32/winmsg/lowlevelkeyboardproc)、[SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput)。
+
+
 

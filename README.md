@@ -4,11 +4,11 @@ Windows 11 虚拟桌面切换工具。双击开启，按一个键在桌面 1 和
 
 ## 下载
 
-Windows 11 x64 用户可直接下载 [DesktopToggle v1.0.0](https://github.com/BroadenZeng/desktop-toggle/raw/refs/tags/v1.0.0/download/DesktopToggle.exe)。也可查看 [发布页面](https://github.com/BroadenZeng/desktop-toggle/releases)。
+Windows 11 x64 用户可直接下载 [下载最新版 DesktopToggle.exe](https://github.com/BroadenZeng/desktop-toggle/raw/refs/heads/main/download/DesktopToggle.exe)。也可查看 [发布页面](https://github.com/BroadenZeng/desktop-toggle/releases)。
 
 下载后双击运行，再次双击可退出。无需安装或管理员权限。请勿同时运行旧版。
 
-SHA-256：`FD61B3C0A3A324DBFAE2064F64238161188619B595A1AA70231BCDCBECBCB6A2`
+SHA-256：`EDB3C125430307B90E20DB2575C50784E181AE67F7FEC72185AEA2ED63173399`
 
 ## 使用
 
@@ -16,7 +16,7 @@ SHA-256：`FD61B3C0A3A324DBFAE2064F64238161188619B595A1AA70231BCDCBECBCB6A2`
 2. 按 Tab 切换桌面；如果只有一个桌面，程序会尝试自动创建第二个。
 3. 修改按键：点击“更改”，直接按下新键，再点击“保存”。例如可以选 F8 或 Caps Lock。仅支持单键，Ctrl、Alt、Shift 和 Win 不能单独作为触发键。
 4. 需要收起工具窗口时，可在“本工具移至”中选择不需要展示工具的虚拟桌面。程序会尝试将工具窗口移到所选桌面，并同时切换过去；切回其他桌面后，工具窗口便不会显示。
-5. “工具状态”可关闭或开启切换功能。关闭窗口或再次双击 EXE 可退出程序。
+5. “工具状态”可关闭或开启切换功能。可将窗口最小化到任务栏，工具继续运行；关闭窗口或再次双击 EXE 可退出程序。
 
 启用期间，触发键的单独按下会被占用；默认 Tab 不再用于普通焦点切换和缩进。带修饰键的组合如 Alt+Tab 会放行。关闭程序不会删除虚拟桌面。
 
@@ -32,7 +32,7 @@ SHA-256：`FD61B3C0A3A324DBFAE2064F64238161188619B595A1AA70231BCDCBECBCB6A2`
 
 ## 验证情况
 
-在 Windows 11 21H2（22000.2538）上，早期版本已验证从一个桌面创建第二个桌面、桌面间切换以及启动和关闭。后续调整了界面和按键录入，最新版的完整键盘交互及其他 Windows 版本尚待验证。详见 [测试记录](TEST-REPORT.md)。
+在 Windows 11 21H2（22000.2538）上，早期版本已验证从一个桌面创建第二个桌面、桌面间切换以及启动和关闭。后续调整了界面和按键录入，最新版的最小化、完整键盘交互及其他 Windows 版本尚待验证。详见 [测试记录](TEST-REPORT.md)。
 
 ## 问题反馈
 

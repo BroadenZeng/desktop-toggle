@@ -195,6 +195,21 @@ sealed class KeyCapture : TextBox {
 }
 sealed class TrayApp : ApplicationContext, IMessageFilter {
     readonly NotifyIcon tray; readonly Engine engine; readonly System.Windows.Forms.Timer timer;
+    readonly Icon trayIcon;
+    [DllImport("user32.dll")] static extern bool DestroyIcon(IntPtr handle);
+    static Icon MakeTrayIcon() {
+        using(var bitmap=new Bitmap(32,32)) using(var g=Graphics.FromImage(bitmap)) {
+            g.Clear(Color.Transparent);
+            using(var pen=new Pen(Color.FromArgb(135,143,155),3)) {
+                g.DrawRectangle(pen,5,6,17,15);
+                g.DrawLine(pen,10,25,26,25);
+                g.DrawLine(pen,26,10,26,25);
+            }
+            IntPtr handle=bitmap.GetHicon();
+            try { using(var temp=Icon.FromHandle(handle)) return (Icon)temp.Clone(); }
+            finally { DestroyIcon(handle); }
+        }
+    }
     readonly EventWaitHandle stop; string failure; bool announced, cleaned, editing;
     Form status; Label statusText, feedback; KeyCapture capture; Button change, hide;
     static readonly Color Ink=Color.FromArgb(28,37,54), Muted=Color.FromArgb(105,116,135), Blue=Color.FromArgb(64,94,232);
@@ -208,7 +223,8 @@ sealed class TrayApp : ApplicationContext, IMessageFilter {
     public TrayApp(EventWaitHandle stopEvent) {
         stop=stopEvent;
         engine=new Engine(Binding.Load(),delegate(string text){ Interlocked.Exchange(ref failure,text); });
-        tray=new NotifyIcon{Icon=SystemIcons.Application,Text="桌面切换：正在启动",Visible=true};
+        trayIcon=MakeTrayIcon();
+        tray=new NotifyIcon{Icon=trayIcon,Text="桌面工具",Visible=true};
         var menu=new ContextMenuStrip(); menu.Items.Add("打开主窗口",null,delegate { ShowStatus(); });
         menu.Items.Add("更改按键…",null,delegate { ShowSettings(); });
         menu.Items.Add("关闭并恢复按键",null,delegate { ExitThread(); }); tray.ContextMenuStrip=menu;
@@ -245,7 +261,7 @@ sealed class TrayApp : ApplicationContext, IMessageFilter {
         capture.Visible=false; statusText.Text=engine.Binding.ToString(); statusText.Visible=true;
         change.Text="更改按键"; hide.Text="隐藏窗口";
         feedback.Text=message; feedback.ForeColor=Color.FromArgb(27,132,100);
-        tray.Text="桌面切换："+engine.Binding;
+        tray.Text="桌面工具";
     }
     void SaveBinding() {
         try {
@@ -277,10 +293,10 @@ sealed class TrayApp : ApplicationContext, IMessageFilter {
         if(stop.WaitOne(0)) { ExitThread(); return; }
         string error=Interlocked.Exchange(ref failure,null);
         if(error!=null) { Program.Log(error); ExitThread(); MessageBox.Show(error,"桌面切换已关闭",MessageBoxButtons.OK,MessageBoxIcon.Warning); return; }
-        if(engine.Ready&&!announced) { announced=true; tray.Text="桌面切换："+engine.Binding; ShowStatus(); }
+        if(engine.Ready&&!announced) { announced=true; tray.Text="桌面工具"; ShowStatus(); }
     }
     void Cleanup() {
-        if(cleaned) return; cleaned=true; Application.RemoveMessageFilter(this); timer.Stop(); engine.Dispose(); if(status!=null) status.Dispose(); tray.Visible=false; tray.Dispose(); timer.Dispose();
+        if(cleaned) return; cleaned=true; Application.RemoveMessageFilter(this); timer.Stop(); engine.Dispose(); if(status!=null) status.Dispose(); tray.Visible=false; tray.Dispose(); trayIcon.Dispose(); timer.Dispose();
     }
     protected override void Dispose(bool disposing) { if(disposing) Cleanup(); base.Dispose(disposing); }
     protected override void ExitThreadCore() { Cleanup(); base.ExitThreadCore(); }
@@ -344,5 +360,6 @@ static class Program {
     }
 }
 }
+
 
 

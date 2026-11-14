@@ -9,6 +9,14 @@ using System.Windows.Forms;
 using Microsoft.Win32;
 
 namespace DesktopToggle {
+[ComImport, Guid("A5CD92FF-29BE-454C-8D04-D82879FB3F1B"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+interface IVirtualDesktopManager {
+    void IsWindowOnCurrentVirtualDesktop(IntPtr window, [MarshalAs(UnmanagedType.Bool)] out bool current);
+    void GetWindowDesktopId(IntPtr window, out Guid desktop);
+    void MoveWindowToDesktop(IntPtr window, ref Guid desktop);
+}
+[ComImport, Guid("AA509086-5CA9-4C25-8F95-589D3C07B48A")]
+class VirtualDesktopManager { }
 static class Native {
     public delegate IntPtr HookProc(int code, IntPtr msg, IntPtr data);
     [StructLayout(LayoutKind.Sequential)] public struct KeyData { public uint key, scan, flags, time; public UIntPtr extra; }
@@ -60,6 +68,7 @@ sealed class Binding {
     public static bool ValidKey(int k) { return k==8||k==9||k==13||k==20||k==27||(k>=32&&k<=40)||k==45||k==46||(k>=48&&k<=57)||(k>=65&&k<=90)||(k>=96&&k<=135)||(k>=186&&k<=192)||(k>=219&&k<=222)||k==226; }
     public override string ToString() {
         if(Key==20) return "Caps Lock";
+        if(Key==192) return "`";
         if(Key>=48&&Key<=57) return ((char)Key).ToString();
         return ((Keys)Key).ToString();
     }
@@ -155,7 +164,9 @@ sealed class Engine : IDisposable {
         }
         throw new Exception("桌面数量超出单次切换上限。");
     }
-    public void ToggleDesktop() { var s=EnsureTwo(); Go(s.Ids[s.Index==0?1:0]); }
+    public void ToggleDesktop() {
+        var s=EnsureTwo(); Go(s.Ids[s.Index==0?1:0]);
+    }
     void Loop() {
         try {
             EnsureTwo(); Ready=true; Interlocked.Exchange(ref busy,0);
@@ -176,6 +187,14 @@ sealed class Engine : IDisposable {
         if(!worker.IsAlive) { cancel.Dispose(); trigger.Dispose(); }
         GC.KeepAlive(proc);
     }
+}
+sealed class DesktopPair {
+    public int First,Second;
+    public static DesktopPair Load() {
+        try { var parts=File.ReadAllText(Path.Combine(Program.Root,"desktops.txt")).Split(','); int a=int.Parse(parts[0]),b=int.Parse(parts[1]); if(a>=0&&b>=0&&a!=b&&a<64&&b<64) return new DesktopPair{First=a,Second=b}; } catch { }
+        return new DesktopPair{First=0,Second=1};
+    }
+    public void Save() { Directory.CreateDirectory(Program.Root); File.WriteAllText(Path.Combine(Program.Root,"desktops.txt"),First+","+Second); }
 }
 sealed class KeyCapture : TextBox {
     public Binding Value;
@@ -210,21 +229,21 @@ sealed class TrayApp : ApplicationContext, IMessageFilter {
             finally { DestroyIcon(handle); }
         }
     }
-    readonly EventWaitHandle stop; string failure; bool announced, cleaned, editing;
+    readonly EventWaitHandle stop; string failure; bool announced, cleaned, editing, enabled=true;
     Form status; Label statusText, feedback; KeyCapture capture; Button change, hide;
     static readonly Color Ink=Color.FromArgb(28,37,54), Muted=Color.FromArgb(105,116,135), Blue=Color.FromArgb(64,94,232);
     static Label LabelAt(string text,int x,int y,int width,int height,float size,Color color) {
         return new Label{Text=text,Left=x,Top=y,Width=width,Height=height,ForeColor=color,Font=new Font("Microsoft YaHei UI",size,FontStyle.Regular),BackColor=Color.Transparent};
     }
     static Button ButtonAt(string text,int x,int width,Color fill,Color ink) {
-        var b=new Button{Text=text,Left=x,Top=164,Width=width,Height=36,BackColor=fill,ForeColor=ink,FlatStyle=FlatStyle.Flat,Cursor=Cursors.Hand,Font=new Font("Microsoft YaHei UI",10),UseVisualStyleBackColor=false};
+        var b=new Button{Text=text,Left=x,Top=74,Width=width,Height=34,BackColor=fill,ForeColor=ink,FlatStyle=FlatStyle.Flat,Cursor=Cursors.Hand,Font=new Font("Microsoft YaHei UI",10),UseVisualStyleBackColor=false};
         b.FlatAppearance.BorderSize=0; return b;
     }
     public TrayApp(EventWaitHandle stopEvent) {
         stop=stopEvent;
         engine=new Engine(Binding.Load(),delegate(string text){ Interlocked.Exchange(ref failure,text); });
         trayIcon=MakeTrayIcon();
-        tray=new NotifyIcon{Icon=trayIcon,Text="桌面工具",Visible=true};
+        tray=new NotifyIcon{Icon=trayIcon,Text="桌面工具",Visible=false};
         var menu=new ContextMenuStrip(); menu.Items.Add("打开主窗口",null,delegate { ShowStatus(); });
         menu.Items.Add("更改按键…",null,delegate { ShowSettings(); });
         menu.Items.Add("关闭并恢复按键",null,delegate { ExitThread(); }); tray.ContextMenuStrip=menu;
@@ -252,14 +271,14 @@ sealed class TrayApp : ApplicationContext, IMessageFilter {
         capture.Value=new Binding{Key=engine.Binding.Key}; capture.Text=capture.Value.ToString();
         statusText.Visible=false; capture.Visible=true;
         feedback.Text="请直接按一下新键，然后点击保存。";
-        feedback.ForeColor=Blue; change.Text="保存按键"; hide.Text="取消更改";
+        feedback.ForeColor=Blue; change.Text="保存"; hide.Text="取消更改"; hide.Visible=true;
         capture.Focus(); capture.SelectAll();
     }
     void EndEditing(string message) {
-        editing=false; engine.Paused=false;
+        editing=false; engine.Paused=!enabled;
         if(status==null || status.IsDisposed) return;
         capture.Visible=false; statusText.Text=engine.Binding.ToString(); statusText.Visible=true;
-        change.Text="更改按键"; hide.Text="隐藏窗口";
+        change.Text="更改"; hide.Visible=false;
         feedback.Text=message; feedback.ForeColor=Color.FromArgb(27,132,100);
         tray.Text="桌面工具";
     }
@@ -272,21 +291,31 @@ sealed class TrayApp : ApplicationContext, IMessageFilter {
     void ShowStatus() {
         if(cleaned) return;
         if(status!=null && !status.IsDisposed) { status.Show(); status.Activate(); return; }
-        status=new Form{Text="桌面切换",ClientSize=new Size(400,244),FormBorderStyle=FormBorderStyle.FixedSingle,MaximizeBox=false,MinimizeBox=false,StartPosition=FormStartPosition.CenterScreen,BackColor=Color.White,Font=new Font("Microsoft YaHei UI",10),AutoScaleMode=AutoScaleMode.Dpi};
-        var caption=LabelAt("当前按键",24,21,220,24,10,Muted);
-        var badge=LabelAt("● 已开启",294,21,90,24,9,Color.FromArgb(27,132,100));
-        statusText=LabelAt(engine.Binding.ToString(),24,53,352,55,28,Ink); statusText.TextAlign=ContentAlignment.MiddleCenter;
-        capture=new KeyCapture(engine.Binding){Left=24,Top=55,Width=352,Font=new Font("Microsoft YaHei UI",23),BorderStyle=BorderStyle.FixedSingle,BackColor=Color.FromArgb(247,249,252),ForeColor=Ink,Visible=false};
-        feedback=LabelAt("桌面 1  ↔  桌面 2",24,118,352,24,9,Muted); feedback.TextAlign=ContentAlignment.MiddleCenter;
-        change=ButtonAt("更改按键",24,124,Blue,Color.White);
-        hide=ButtonAt("隐藏",160,102,Color.FromArgb(242,244,248),Ink);
-        var quit=ButtonAt("关闭工具",274,102,Color.FromArgb(242,244,248),Ink);
+        status=new Form{Text="桌面切换",ClientSize=new Size(300,135),FormBorderStyle=FormBorderStyle.FixedSingle,MaximizeBox=false,MinimizeBox=false,StartPosition=FormStartPosition.CenterScreen,BackColor=Color.White,Font=new Font("Microsoft YaHei UI",10),AutoScaleMode=AutoScaleMode.Dpi};
+        var caption=LabelAt("切换按键",12,13,85,26,10,Ink);
+        var badge=LabelAt("",278,25,1,1,9,Color.FromArgb(27,132,100));
+        statusText=LabelAt(engine.Binding.ToString(),100,9,110,32,12,Ink); statusText.TextAlign=ContentAlignment.MiddleLeft;
+        capture=new KeyCapture(engine.Binding){Left=100,Top=10,Width=110,Font=new Font("Microsoft YaHei UI",12),BorderStyle=BorderStyle.FixedSingle,BackColor=Color.FromArgb(247,249,252),ForeColor=Ink,Visible=false};
+        feedback=LabelAt("",16,38,308,18,8,Muted); feedback.TextAlign=ContentAlignment.MiddleLeft;
+        change=ButtonAt("更改",218,70,Color.FromArgb(239,242,248),Ink); change.Top=8; change.Height=28;
+        hide=ButtonAt("取消",142,70,Color.FromArgb(239,242,248),Ink); hide.Top=8; hide.Height=28; hide.Visible=false;
+        var quit=ButtonAt("关闭",270,86,Color.FromArgb(239,242,248),Ink); quit.Top=91; quit.Left=218; quit.Width=70; quit.Height=28;
+        var stateLabel=LabelAt("工具状态",12,95,85,26,10,Ink);
+        var stateValue=LabelAt("已开启",100,95,110,26,10,Color.FromArgb(27,132,100));
         change.Click+=delegate { if(editing) SaveBinding(); else ShowSettings(); };
-        hide.Click+=delegate { if(editing) EndEditing("已取消 · 原按键保持不变"); else status.Close(); };
-        quit.Click+=delegate { ExitThread(); };
-        var note=LabelAt("隐藏后继续运行，关闭工具后恢复原按键。",24,213,352,20,8,Muted); note.TextAlign=ContentAlignment.MiddleCenter;
-        status.Controls.AddRange(new Control[]{caption,badge,statusText,capture,feedback,change,hide,quit,note});
-        status.FormClosed+=delegate { editing=false; engine.Paused=false; };
+        hide.Click+=delegate { if(editing) { EndEditing("已取消 · 原按键保持不变"); hide.Visible=false; } };
+        quit.Click+=delegate { if(editing) EndEditing("已取消更改"); enabled=!enabled; engine.Paused=!enabled; quit.Text=enabled?"关闭":"开启"; stateValue.Text=enabled?"已开启":"已关闭"; stateValue.ForeColor=enabled?Color.FromArgb(27,132,100):Muted; };
+        var moveLabel=LabelAt("本工具移至",12,52,85,26,10,Ink);
+        var target=new ComboBox{Left=100,Top=49,Width=188,DropDownStyle=ComboBoxStyle.DropDownList};
+        var move=new Button{Text="移动并切换",Left=-200,Top=-200,Width=1,Height=1};
+        Action refresh=delegate { var snap=Snapshot.Read(); int selected=target.SelectedIndex; target.Items.Clear(); for(int i=0;i<snap.Ids.Length;i++) target.Items.Add("桌面 "+(i+1)); target.SelectedIndex=selected>=0&&selected<snap.Ids.Length?selected:snap.Index; };
+        try { refresh(); } catch(Exception ex) { feedback.Text=ex.Message; }
+        target.DropDown+=delegate { try { refresh(); } catch(Exception ex) { feedback.Text=ex.Message; } };
+        move.Click+=delegate { try { var snap=Snapshot.Read(); int n=target.SelectedIndex; if(n<0||n>=snap.Ids.Length) throw new Exception("桌面已变化，请重新选择。"); Guid id=snap.Ids[n]; var manager=(IVirtualDesktopManager)new VirtualDesktopManager(); try { manager.MoveWindowToDesktop(status.Handle,ref id); } finally { Marshal.ReleaseComObject(manager); } move.Enabled=false; engine.Paused=true; ThreadPool.QueueUserWorkItem(delegate { string error=null; try { engine.Go(id); } catch(Exception ex) { error=ex.Message; } try { status.BeginInvoke((Action)delegate { engine.Paused=!enabled; move.Enabled=true; if(error!=null) MessageBox.Show(status,"窗口已移动，但桌面切换未完成："+error); }); } catch(ObjectDisposedException) {} catch(InvalidOperationException) {} }); } catch(Exception ex) { MessageBox.Show(status,"无法移动窗口："+ex.Message); } };
+        target.SelectionChangeCommitted+=delegate { move.PerformClick(); };
+        
+        status.Controls.AddRange(new Control[]{caption,badge,statusText,capture,feedback,change,hide,quit,stateLabel,stateValue,moveLabel,target,move});
+        status.FormClosed+=delegate { editing=false; engine.Paused=!enabled; if(!cleaned) ExitThread(); };
         status.Show(); status.Activate();
     }
     void Tick(object sender,EventArgs e) {
@@ -360,6 +389,14 @@ static class Program {
     }
 }
 }
+
+
+
+
+
+
+
+
 
 
 

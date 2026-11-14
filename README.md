@@ -1,6 +1,6 @@
 # DesktopToggle · 一键切换虚拟桌面
 
-轻量的虚拟桌面切换工具。按一个键，在学习、工作和个人桌面之间快速切换。默认按键为 Tab，也可以改成其他单键。
+轻量的虚拟桌面切换工具。按一个键，在学习、工作和娱乐桌面之间快速切换。默认按键为 Tab，也可以改成其他单键。
 
 ## 下载
 
@@ -49,6 +49,7 @@ powershell -NoProfile -File .\build.ps1
 编译后生成 `DesktopToggle.exe`。源码位于 `src/`。项目使用 MIT 许可证，参见 [LICENSE](LICENSE)。实现方案与早期脚本说明见 [NOTICE.md](NOTICE.md)。
 
 参考：[键盘钩子](https://learn.microsoft.com/en-us/windows/win32/winmsg/lowlevelkeyboardproc)、[SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput)。
+
 
 
 

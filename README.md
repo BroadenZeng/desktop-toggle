@@ -2,14 +2,6 @@
 
 轻量的虚拟桌面切换工具。按一个键，在学习、工作和娱乐桌面之间快速切换。默认按键为 Tab，也可以改成其他单键。
 
-## 下载
-
-可在仓库的 `download` 目录中找到最新版，也可查看发布页面。
-
-下载后双击运行，再次双击可退出。无需安装或管理员权限。请勿同时运行旧版。
-
-SHA-256：`EDB3C125430307B90E20DB2575C50784E181AE67F7FEC72185AEA2ED63173399`
-
 ## 使用
 
 1. 双击运行下载的 EXE。启用后会显示主窗口。
@@ -19,6 +11,14 @@ SHA-256：`EDB3C125430307B90E20DB2575C50784E181AE67F7FEC72185AEA2ED63173399`
 5. “工具状态”可关闭或开启切换功能。可将窗口最小化到任务栏，工具继续运行；关闭窗口或再次双击 EXE 可退出程序。
 
 启用期间，触发键的单独按下会被占用；默认 Tab 不再用于普通焦点切换和缩进。带修饰键的组合如 Alt+Tab 会放行。关闭程序不会删除虚拟桌面。
+
+## 下载
+
+可在仓库的 `download` 目录中找到最新版，也可查看发布页面。
+
+下载后双击运行，再次双击可退出。无需安装或管理员权限。请勿同时运行旧版。
+
+SHA-256：`EDB3C125430307B90E20DB2575C50784E181AE67F7FEC72185AEA2ED63173399`
 
 ## 注意事项
 
@@ -49,6 +49,7 @@ powershell -NoProfile -File .\build.ps1
 编译后生成 `DesktopToggle.exe`。源码位于 `src/`。项目使用 MIT 许可证，参见 [LICENSE](LICENSE)。实现方案与早期脚本说明见 [NOTICE.md](NOTICE.md)。
 
 参考：[键盘钩子](https://learn.microsoft.com/en-us/windows/win32/winmsg/lowlevelkeyboardproc)、[SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput)。
+
 
 
 

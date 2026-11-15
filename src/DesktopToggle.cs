@@ -291,7 +291,7 @@ sealed class TrayApp : ApplicationContext, IMessageFilter {
     void ShowStatus() {
         if(cleaned) return;
         if(status!=null && !status.IsDisposed) { status.Show(); status.Activate(); return; }
-        status=new Form{Text="桌面切换",ClientSize=new Size(300,135),FormBorderStyle=FormBorderStyle.FixedSingle,MaximizeBox=false,MinimizeBox=true,StartPosition=FormStartPosition.CenterScreen,BackColor=Color.White,Font=new Font("Microsoft YaHei UI",10),AutoScaleMode=AutoScaleMode.Dpi};
+        status=new Form{Icon=Icon.ExtractAssociatedIcon(Application.ExecutablePath),Text="桌面切换",ClientSize=new Size(300,135),FormBorderStyle=FormBorderStyle.FixedSingle,MaximizeBox=false,MinimizeBox=true,StartPosition=FormStartPosition.CenterScreen,BackColor=Color.White,Font=new Font("Microsoft YaHei UI",10),AutoScaleMode=AutoScaleMode.Dpi};
         var caption=LabelAt("切换按键",12,13,85,26,10,Ink);
         var badge=LabelAt("",278,25,1,1,9,Color.FromArgb(27,132,100));
         statusText=LabelAt(engine.Binding.ToString(),100,9,110,32,12,Ink); statusText.TextAlign=ContentAlignment.MiddleLeft;
@@ -389,6 +389,7 @@ static class Program {
     }
 }
 }
+
 
 
 

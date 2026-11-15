@@ -4,7 +4,7 @@
 
 ## 下载
 
-直接下载 [下载最新版 DesktopToggle.exe](https://github.com/BroadenZeng/desktop-toggle/raw/refs/heads/main/download/DesktopToggle.exe)。也可查看 [发布页面](https://github.com/BroadenZeng/desktop-toggle/releases)。
+可在仓库的 `download` 目录中找到最新版，也可查看发布页面。
 
 下载后双击运行，再次双击可退出。无需安装或管理员权限。请勿同时运行旧版。
 
@@ -49,6 +49,7 @@ powershell -NoProfile -File .\build.ps1
 编译后生成 `DesktopToggle.exe`。源码位于 `src/`。项目使用 MIT 许可证，参见 [LICENSE](LICENSE)。实现方案与早期脚本说明见 [NOTICE.md](NOTICE.md)。
 
 参考：[键盘钩子](https://learn.microsoft.com/en-us/windows/win32/winmsg/lowlevelkeyboardproc)、[SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput)。
+
 
 
 
